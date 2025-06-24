@@ -1,14 +1,7 @@
 import { Request, Response } from "express";
-import { Assignment, CreateAssignmentDTO, UpdateAssignmentDTO } from "../types";
-import {
-	successResponse,
-	errorResponse,
-	generateId,
-	validateRequiredFields,
-} from "../utils";
-
-// In-memory storage for demo (replace with database later)
-let assignments: Assignment[] = [];
+import { CreateAssignmentDTO, UpdateAssignmentDTO } from "../types";
+import { successResponse, errorResponse } from "../utils";
+import { AssignmentModel } from "../models/Assignment";
 
 /**
  * GET /api/assignments
@@ -19,10 +12,12 @@ export const getAllAssignments = async (
 	res: Response
 ): Promise<void> => {
 	try {
+		const assignments = await AssignmentModel.getAll();
 		res.json(
 			successResponse(assignments, "Assignments retrieved successfully")
 		);
 	} catch (error) {
+		console.error("Error getting assignments:", error);
 		res.status(500).json(errorResponse("Failed to retrieve assignments"));
 	}
 };
@@ -37,7 +32,7 @@ export const getAssignmentById = async (
 ): Promise<void> => {
 	try {
 		const { id } = req.params;
-		const assignment = assignments.find((a) => a.id === id);
+		const assignment = await AssignmentModel.getById(id);
 
 		if (!assignment) {
 			res.status(404).json(errorResponse("Assignment not found"));
@@ -48,6 +43,7 @@ export const getAssignmentById = async (
 			successResponse(assignment, "Assignment retrieved successfully")
 		);
 	} catch (error) {
+		console.error("Error getting assignment:", error);
 		res.status(500).json(errorResponse("Failed to retrieve assignment"));
 	}
 };
@@ -62,50 +58,15 @@ export const createAssignment = async (
 ): Promise<void> => {
 	try {
 		const data: CreateAssignmentDTO = req.body;
-
-		// Validate required fields
-		const requiredFields = ["title", "subject", "dueDate", "estimatedHours"];
-		const missingFields = validateRequiredFields(data, requiredFields);
-
-		if (missingFields.length > 0) {
-			res.status(400).json(
-				errorResponse(
-					`Missing required fields: ${missingFields.join(", ")}`
-				)
-			);
-			return;
-		}
-
-		// Validate estimated hours
-		if (data.estimatedHours <= 0) {
-			res.status(400).json(
-				errorResponse("Estimated hours must be greater than 0")
-			);
-			return;
-		}
-
-		// Create new assignment
-		const newAssignment: Assignment = {
-			id: generateId(),
-			title: data.title.trim(),
-			description: data.description?.trim() || "",
-			subject: data.subject.trim(),
-			dueDate: new Date(data.dueDate),
-			priority: data.priority || "medium",
-			status: "not-started",
-			estimatedHours: data.estimatedHours,
-			tags: data.tags || [],
-			createdAt: new Date(),
-			updatedAt: new Date(),
-		};
-
-		assignments.push(newAssignment);
-
+		const newAssignment = await AssignmentModel.create(data);
 		res.status(201).json(
 			successResponse(newAssignment, "Assignment created successfully")
 		);
 	} catch (error) {
-		res.status(500).json(errorResponse("Failed to create assignment"));
+		console.error("Error creating assignment:", error);
+		const message =
+			error instanceof Error ? error.message : "Failed to create assignment";
+		res.status(400).json(errorResponse(message));
 	}
 };
 
@@ -121,30 +82,21 @@ export const updateAssignment = async (
 		const { id } = req.params;
 		const data: UpdateAssignmentDTO = req.body;
 
-		const assignmentIndex = assignments.findIndex((a) => a.id === id);
+		const updatedAssignment = await AssignmentModel.updateById(id, data);
 
-		if (assignmentIndex === -1) {
+		if (!updatedAssignment) {
 			res.status(404).json(errorResponse("Assignment not found"));
 			return;
 		}
-
-		// Update assignment
-		const updatedAssignment: Assignment = {
-			...assignments[assignmentIndex],
-			...data,
-			dueDate: data.dueDate
-				? new Date(data.dueDate)
-				: assignments[assignmentIndex].dueDate,
-			updatedAt: new Date(),
-		};
-
-		assignments[assignmentIndex] = updatedAssignment;
 
 		res.json(
 			successResponse(updatedAssignment, "Assignment updated successfully")
 		);
 	} catch (error) {
-		res.status(500).json(errorResponse("Failed to update assignment"));
+		console.error("Error updating assignment:", error);
+		const message =
+			error instanceof Error ? error.message : "Failed to update assignment";
+		res.status(400).json(errorResponse(message));
 	}
 };
 
@@ -158,17 +110,16 @@ export const deleteAssignment = async (
 ): Promise<void> => {
 	try {
 		const { id } = req.params;
-		const assignmentIndex = assignments.findIndex((a) => a.id === id);
+		const deleted = await AssignmentModel.deleteById(id);
 
-		if (assignmentIndex === -1) {
+		if (!deleted) {
 			res.status(404).json(errorResponse("Assignment not found"));
 			return;
 		}
 
-		assignments.splice(assignmentIndex, 1);
-
 		res.json(successResponse(null, "Assignment deleted successfully"));
 	} catch (error) {
+		console.error("Error deleting assignment:", error);
 		res.status(500).json(errorResponse("Failed to delete assignment"));
 	}
 };
@@ -185,35 +136,99 @@ export const updateAssignmentStatus = async (
 		const { id } = req.params;
 		const { status } = req.body;
 
-		const validStatuses = [
-			"not-started",
-			"in-progress",
-			"completed",
-			"overdue",
-		];
+		const updatedAssignment = await AssignmentModel.updateStatus(id, status);
 
-		if (!status || !validStatuses.includes(status)) {
-			res.status(400).json(errorResponse("Invalid status"));
-			return;
-		}
-
-		const assignmentIndex = assignments.findIndex((a) => a.id === id);
-
-		if (assignmentIndex === -1) {
+		if (!updatedAssignment) {
 			res.status(404).json(errorResponse("Assignment not found"));
 			return;
 		}
 
-		assignments[assignmentIndex].status = status;
-		assignments[assignmentIndex].updatedAt = new Date();
-
 		res.json(
 			successResponse(
-				assignments[assignmentIndex],
+				updatedAssignment,
 				"Assignment status updated successfully"
 			)
 		);
 	} catch (error) {
-		res.status(500).json(errorResponse("Failed to update assignment status"));
+		console.error("Error updating assignment status:", error);
+		const message =
+			error instanceof Error
+				? error.message
+				: "Failed to update assignment status";
+		res.status(400).json(errorResponse(message));
+	}
+};
+
+/**
+ * GET /api/assignments/search?q=query
+ * Search assignments
+ */
+export const searchAssignments = async (
+	req: Request,
+	res: Response
+): Promise<void> => {
+	try {
+		const { q } = req.query;
+
+		if (!q || typeof q !== "string") {
+			res.status(400).json(errorResponse("Search query is required"));
+			return;
+		}
+
+		const assignments = await AssignmentModel.search(q);
+		res.json(
+			successResponse(assignments, `Found ${assignments.length} assignments`)
+		);
+	} catch (error) {
+		console.error("Error searching assignments:", error);
+		res.status(500).json(errorResponse("Failed to search assignments"));
+	}
+};
+
+/**
+ * GET /api/assignments/upcoming
+ * Get upcoming assignments
+ */
+export const getUpcomingAssignments = async (
+	req: Request,
+	res: Response
+): Promise<void> => {
+	try {
+		const assignments = await AssignmentModel.getUpcoming();
+		res.json(
+			successResponse(
+				assignments,
+				"Upcoming assignments retrieved successfully"
+			)
+		);
+	} catch (error) {
+		console.error("Error getting upcoming assignments:", error);
+		res.status(500).json(
+			errorResponse("Failed to retrieve upcoming assignments")
+		);
+	}
+};
+
+/**
+ * GET /api/assignments/overdue
+ * Get overdue assignments
+ */
+export const getOverdueAssignments = async (
+	req: Request,
+	res: Response
+): Promise<void> => {
+	try {
+		const assignments = await AssignmentModel.getOverdue();
+		res.json(
+			successResponse(
+				assignments,
+				"Overdue assignments retrieved successfully"
+			)
+		);
+	} catch (error) {
+		console.error("Error getting overdue assignments:", error);
+		res.status(500).json(
+			errorResponse("Failed to retrieve overdue assignments")
+		);
 	}
 };

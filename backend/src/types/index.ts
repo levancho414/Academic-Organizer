@@ -53,12 +53,12 @@ export interface TypedResponse<T = any> extends Response {
 	json: (body: ApiResponse<T>) => this;
 }
 
-// Form data types for validation
+// Form data types (using strings for dates from frontend)
 export interface CreateAssignmentDTO {
 	title: string;
 	description?: string;
 	subject: string;
-	dueDate: string; // ISO string
+	dueDate: string; // ISO string from frontend
 	priority: "low" | "medium" | "high";
 	estimatedHours: number;
 	tags?: string[];
@@ -68,7 +68,7 @@ export interface UpdateAssignmentDTO {
 	title?: string;
 	description?: string;
 	subject?: string;
-	dueDate?: string;
+	dueDate?: string; // ISO string from frontend
 	priority?: "low" | "medium" | "high";
 	estimatedHours?: number;
 	actualHours?: number;

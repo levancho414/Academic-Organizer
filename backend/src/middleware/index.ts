@@ -1,15 +1,18 @@
 import { Request, Response, NextFunction } from "express";
-import { errorResponse, logError } from "../utils";
+import { errorResponse } from "../utils";
 
+/**
+ * Global error handler middleware
+ */
 export const errorHandler = (
 	err: Error,
 	req: Request,
 	res: Response,
 	next: NextFunction
 ): void => {
-	logError(err, "ErrorHandler");
+	console.error("Error:", err);
 
-
+	// Default error
 	let status = 500;
 	let message = "Internal server error";
 
@@ -25,14 +28,17 @@ export const errorHandler = (
 		message = "Unauthorized";
 	}
 
+	// Don't leak error details in production
 	if (process.env.NODE_ENV === "production") {
 		res.status(status).json(errorResponse(message));
 	} else {
-		res.status(status).json(errorResponse(err.message, err.stack));
+		res.status(status).json(errorResponse(err.message));
 	}
 };
 
-
+/**
+ * 404 Not Found handler
+ */
 export const notFoundHandler = (
 	req: Request,
 	res: Response,
@@ -41,25 +47,9 @@ export const notFoundHandler = (
 	res.status(404).json(errorResponse(`Route ${req.originalUrl} not found`));
 };
 
-
-export const requestLogger = (
-	req: Request,
-	res: Response,
-	next: NextFunction
-): void => {
-	const start = Date.now();
-
-	res.on("finish", () => {
-		const duration = Date.now() - start;
-		console.log(
-			`${req.method} ${req.originalUrl} - ${res.statusCode} - ${duration}ms`
-		);
-	});
-
-	next();
-};
-
-
+/**
+ * Validate JSON middleware
+ */
 export const validateJSON = (
 	err: Error,
 	req: Request,
@@ -74,39 +64,8 @@ export const validateJSON = (
 };
 
 /**
- * Rate limiting exceeded handler
+ * Request timeout middleware
  */
-export const rateLimitHandler = (
-	req: Request,
-	res: Response,
-	next: NextFunction
-): void => {
-	res.status(429).json(
-		errorResponse(
-			"Too many requests, please try again later.",
-			"Rate limit exceeded"
-		)
-	);
-};
-
-export const corsHandler = (
-	req: Request,
-	res: Response,
-	next: NextFunction
-): void => {
-	if (req.method === "OPTIONS") {
-		res.header(
-			"Access-Control-Allow-Methods",
-			"GET, POST, PUT, DELETE, PATCH"
-		);
-		res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-		res.status(200).send();
-		return;
-	}
-	next();
-};
-
-
 export const requestTimeout = (timeoutMs: number = 30000) => {
 	return (req: Request, res: Response, next: NextFunction): void => {
 		const timeout = setTimeout(() => {
