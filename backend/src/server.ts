@@ -14,12 +14,16 @@ import {
 	validateJSON,
 	requestTimeout,
 } from "./middleware";
+import { initializeDatabase } from "./database";
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Initialize database on startup
+initializeDatabase().catch(console.error);
 
 // Security middleware
 app.use(helmet());
@@ -73,6 +77,7 @@ app.listen(PORT, () => {
 	console.log(`🚀 Server running on port ${PORT}`);
 	console.log(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
 	console.log(`🌐 Health check: http://localhost:${PORT}/api/health`);
+	console.log(`📊 Stats: http://localhost:${PORT}/api/stats`);
 });
 
 export default app;
