@@ -344,3 +344,97 @@ body {
 		grid-template-columns: 1fr;
 	}
 }
+
+/* Secondary button style (add after existing button styles) */
+.btn-secondary {
+	background-color: #6b7280;
+	color: white;
+}
+
+.btn-secondary:hover {
+	background-color: #4b5563;
+}
+
+/* Form error styles */
+.border-red-500 {
+	border-color: #ef4444 !important;
+}
+
+/* Tag styles */
+.bg-blue-100 {
+	background-color: #dbeafe;
+}
+
+.text-blue-800 {
+	color: #1e40af;
+}
+
+.text-blue-600 {
+	color: #2563eb;
+}
+
+.hover\:text-blue-800:hover {
+	color: #1e40af;
+}
+
+/* Flex utilities */
+.flex-wrap {
+	flex-wrap: wrap;
+}
+
+.flex-1 {
+	flex: 1;
+}
+
+.inline-flex {
+	display: inline-flex;
+}
+
+.items-center {
+	align-items: center;
+}
+
+/* Spacing utilities */
+.px-2 {
+	padding-left: 0.5rem;
+	padding-right: 0.5rem;
+}
+
+.py-1 {
+	padding-top: 0.25rem;
+	padding-bottom: 0.25rem;
+}
+
+.ml-1 {
+	margin-left: 0.25rem;
+}
+
+.mt-1 {
+	margin-top: 0.25rem;
+}
+
+.mb-6 {
+	margin-bottom: 1.5rem;
+}
+
+.mt-6 {
+	margin-top: 1.5rem;
+}
+
+.gap-2 {
+	gap: 0.5rem;
+}
+
+.gap-4 {
+	gap: 1rem;
+}
+
+/* Text sizes */
+.text-sm {
+	font-size: 0.875rem;
+}
+
+/* Border radius */
+.rounded {
+	border-radius: 0.25rem;
+}
