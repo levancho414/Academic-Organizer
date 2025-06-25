@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import DarkModeToggle from "./DarkModeToggle";
 
 const Navigation: React.FC = () => {
 	const location = useLocation();
@@ -31,6 +32,7 @@ const Navigation: React.FC = () => {
 						</li>
 					))}
 				</ul>
+				<DarkModeToggle />
 			</div>
 		</nav>
 	);

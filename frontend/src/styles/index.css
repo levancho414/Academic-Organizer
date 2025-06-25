@@ -24,3 +24,6 @@
 
 /* Responsive */
 @import "./responsive/mobile.css";
+
+@import "./improvements/ui-enhancements.css";
+@import "./improvements/responsive.css";

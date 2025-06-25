@@ -94,6 +94,7 @@
 	border-radius: 0.375rem;
 	background: white;
 	cursor: pointer;
+	color: black;
 }
 
 .sort-direction-btn:hover {
