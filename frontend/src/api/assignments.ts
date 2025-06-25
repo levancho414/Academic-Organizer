@@ -6,14 +6,14 @@ export const assignmentsApi = {
 	// Get all assignments
 	getAll: async (): Promise<Assignment[]> => {
 		try {
-			const response = await api.get<ApiResponse<Assignment[]>>(
+			const response = await api.get<ApiResponse<any>>(
 				API_ENDPOINTS.assignments
 			);
-			// Ensure we always return an array
-			return Array.isArray(response.data.data) ? response.data.data : [];
+			// Handle nested data structure from paginated response
+			const data = response.data.data?.data || response.data.data || [];
+			return Array.isArray(data) ? data : [];
 		} catch (error) {
 			console.error("API Error in getAll:", error);
-			// Return empty array on error to prevent crashes
 			return [];
 		}
 	},
