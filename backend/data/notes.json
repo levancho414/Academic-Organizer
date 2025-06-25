@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "id": "rp91z106fmccexn0x",
+    "title": "Final Project Note",
+    "content": "This is dummy note for software engineering final project.",
+    "subject": "Software Engineering Practical Course",
+    "tags": [
+      "Final Project"
+    ],
+    "assignmentId": "xvbno5a11mccewvbo",
+    "createdAt": "2025-06-25T20:34:36.369Z",
+    "updatedAt": "2025-06-25T20:34:36.369Z",
+    "lastAccessedAt": "2025-06-25T20:34:36.369Z"
+  }
+]
