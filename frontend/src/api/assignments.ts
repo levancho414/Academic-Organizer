@@ -3,11 +3,19 @@ import { Assignment, AssignmentFormData, ApiResponse } from "../types";
 
 export const assignmentsApi = {
 	// Get all assignments
+	// Get all assignments
 	getAll: async (): Promise<Assignment[]> => {
-		const response = await api.get<ApiResponse<Assignment[]>>(
-			API_ENDPOINTS.assignments
-		);
-		return response.data.data || [];
+		try {
+			const response = await api.get<ApiResponse<Assignment[]>>(
+				API_ENDPOINTS.assignments
+			);
+			// Ensure we always return an array
+			return Array.isArray(response.data.data) ? response.data.data : [];
+		} catch (error) {
+			console.error("API Error in getAll:", error);
+			// Return empty array on error to prevent crashes
+			return [];
+		}
 	},
 
 	// Get assignment by ID
