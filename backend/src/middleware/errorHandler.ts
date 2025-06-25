@@ -91,13 +91,14 @@ export const errorHandler = (
 		message = "Permission denied";
 	}
 
-	// Don't leak error details in production
-	const response = process.env.NODE_ENV === "production" 
-		? errorResponse(message)
-		: errorResponse(message, {
-			stack: err.stack,
-			details: error,
-		} as any);
+
+	const response =
+		process.env.NODE_ENV === "production"
+			? errorResponse(message)
+			: errorResponse(message, {
+					stack: err.stack,
+					details: error,
+			  } as any);
 
 	res.status(statusCode).json(response);
 };
@@ -158,13 +159,11 @@ export const securityHeaders = (
 ): void => {
 	// Remove sensitive headers
 	res.removeHeader("X-Powered-By");
-	
 	// Add security headers
 	res.setHeader("X-Content-Type-Options", "nosniff");
 	res.setHeader("X-Frame-Options", "DENY");
 	res.setHeader("X-XSS-Protection", "1; mode=block");
 	res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-	
 	next();
 };
 
@@ -177,7 +176,6 @@ export const requestLogger = (
 	next: NextFunction
 ): void => {
 	const start = Date.now();
-	
 	res.on("finish", () => {
 		const duration = Date.now() - start;
 		const logData = {
@@ -189,7 +187,7 @@ export const requestLogger = (
 			userAgent: req.get("User-Agent"),
 			timestamp: new Date().toISOString(),
 		};
-		
+
 		// Log based on status code
 		if (res.statusCode >= 400) {
 			console.error("Request Error:", logData);
@@ -197,18 +195,23 @@ export const requestLogger = (
 			console.log("Request:", logData);
 		}
 	});
-	
+
 	next();
 };
 
 /**
  * API rate limiting by IP
  */
-export const rateLimitByIP = (maxRequests: number = 100, windowMs: number = 15 * 60 * 1000) => {
+
+export const rateLimitByIP = (
+	maxRequests: number = 100,
+	windowMs: number = 15 * 60 * 1000
+) => {
 	const requests: { [key: string]: { count: number; resetTime: number } } = {};
 
 	return (req: Request, res: Response, next: NextFunction): void => {
-		const ip = req.ip || "";
+		const ip = req.ip || req.connection.remoteAddress || "unknown";
+
 		const now = Date.now();
 
 		if (!requests[ip] || now > requests[ip].resetTime) {
@@ -222,7 +225,10 @@ export const rateLimitByIP = (maxRequests: number = 100, windowMs: number = 15 *
 
 		if (requests[ip].count > maxRequests) {
 			res.status(429).json(
-				errorResponse("Too many requests from this IP. Please try again later.")
+				errorResponse(
+					"Too many requests from this IP. Please try again later."
+				)
+
 			);
 			return;
 		}
