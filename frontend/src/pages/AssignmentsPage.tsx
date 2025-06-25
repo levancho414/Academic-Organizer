@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from "react";
 import AssignmentForm from "../components/AssignmentForm";
 import AssignmentList from "../components/AssignmentList";
+import LoadingSpinner from "../components/common/LoadingSpinner";
+import SkeletonLoader from "../components/common/SkeletonLoader";
+import ErrorBoundary from "../components/common/ErrorBoundary";
+import NetworkError from "../components/common/NetworkError";
 import { Assignment, AssignmentFormData } from "../types";
 import { assignmentsApi } from "../api/assignments";
+import { ApiError } from "../api/errors";
 
 const AssignmentsPage: React.FC = () => {
 	const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -10,7 +15,8 @@ const AssignmentsPage: React.FC = () => {
 	const [editingAssignment, setEditingAssignment] =
 		useState<Assignment | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [error, setError] = useState<ApiError | null>(null);
 
 	// Load assignments on component mount
 	useEffect(() => {
@@ -19,14 +25,23 @@ const AssignmentsPage: React.FC = () => {
 
 	const loadAssignments = async () => {
 		setIsLoading(true);
+		setError(null);
 		try {
 			const data = await assignmentsApi.getAll();
-			// Ensure data is always an array
 			setAssignments(Array.isArray(data) ? data : []);
 		} catch (error) {
 			console.error("Error loading assignments:", error);
-			setError("Failed to load assignments. Please try again.");
-			// Set empty array on error
+			if (error instanceof ApiError) {
+				setError(error);
+			} else {
+				setError(
+					new ApiError(
+						"Failed to load assignments. Please try again.",
+						500,
+						error
+					)
+				);
+			}
 			setAssignments([]);
 		} finally {
 			setIsLoading(false);
@@ -34,7 +49,8 @@ const AssignmentsPage: React.FC = () => {
 	};
 
 	const handleFormSubmit = async (data: AssignmentFormData) => {
-		setIsLoading(true);
+		setIsSubmitting(true);
+		setError(null);
 		try {
 			if (editingAssignment) {
 				const updated = await assignmentsApi.update(
@@ -54,24 +70,35 @@ const AssignmentsPage: React.FC = () => {
 			setEditingAssignment(null);
 		} catch (error: any) {
 			console.error("Error saving assignment:", error);
-			setError("Failed to save assignment. Please try again.");
+			if (error instanceof ApiError) {
+				setError(error);
+			} else {
+				setError(
+					new ApiError(
+						"Failed to save assignment. Please try again.",
+						500,
+						error
+					)
+				);
+			}
 		} finally {
-			setIsLoading(false);
+			setIsSubmitting(false);
 		}
 	};
 
 	const handleFormCancel = () => {
 		setShowForm(false);
 		setEditingAssignment(null);
+		setError(null);
 	};
 
 	const handleEdit = (assignment: Assignment) => {
 		setEditingAssignment(assignment);
 		setShowForm(true);
+		setError(null);
 	};
 
 	const handleDelete = async (id: string) => {
-		// Find the assignment to show in confirmation
 		const assignment = assignments.find((a) => a.id === id);
 		const assignmentTitle = assignment ? assignment.title : "this assignment";
 
@@ -86,12 +113,21 @@ const AssignmentsPage: React.FC = () => {
 			setAssignments((prev) =>
 				prev.filter((assignment) => assignment.id !== id)
 			);
-
-			// Show success feedback
+			setError(null);
 			console.log(`Assignment "${assignmentTitle}" deleted successfully`);
 		} catch (error: any) {
 			console.error("Error deleting assignment:", error);
-			setError(`Failed to delete "${assignmentTitle}". Please try again.`);
+			if (error instanceof ApiError) {
+				setError(error);
+			} else {
+				setError(
+					new ApiError(
+						`Failed to delete "${assignmentTitle}". Please try again.`,
+						500,
+						error
+					)
+				);
+			}
 		}
 	};
 
@@ -106,13 +142,35 @@ const AssignmentsPage: React.FC = () => {
 					assignment.id === id ? updated : assignment
 				)
 			);
+			setError(null);
 		} catch (error: any) {
 			console.error("Error updating status:", error);
-			setError("Failed to update status. Please try again.");
+			if (error instanceof ApiError) {
+				setError(error);
+			} else {
+				setError(
+					new ApiError(
+						"Failed to update status. Please try again.",
+						500,
+						error
+					)
+				);
+			}
 		}
 	};
 
-	// Convert editing assignment to form data
+	const handleRetry = () => {
+		if (showForm) {
+			setError(null);
+		} else {
+			loadAssignments();
+		}
+	};
+
+	const handleDismissError = () => {
+		setError(null);
+	};
+
 	const getInitialFormData = (): Partial<AssignmentFormData> | undefined => {
 		if (!editingAssignment) return undefined;
 		return {
@@ -128,62 +186,112 @@ const AssignmentsPage: React.FC = () => {
 		};
 	};
 
+	// Handle error boundary errors
+	const handleErrorBoundaryError = (error: Error, errorInfo: any) => {
+		console.error(
+			"ErrorBoundary caught error in AssignmentsPage:",
+			error,
+			errorInfo
+		);
+	};
+
 	if (showForm) {
 		return (
-			<div>
-				{error && (
-					<div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-						<p className="text-red-800">{error}</p>
+			<ErrorBoundary
+				onError={handleErrorBoundaryError}
+				fallback={
+					<div className="p-8 text-center">
+						<h2 className="text-xl font-semibold mb-4">Form Error</h2>
+						<p className="text-gray-600 mb-4">
+							There was an error loading the form.
+						</p>
 						<button
-							onClick={() => setError(null)}
-							className="mt-2 text-sm text-red-600 hover:text-red-800"
+							onClick={() => setShowForm(false)}
+							className="btn btn-primary"
 						>
-							Dismiss
+							Back to Assignments
 						</button>
 					</div>
-				)}
-				<AssignmentForm
-					onSubmit={handleFormSubmit}
-					onCancel={handleFormCancel}
-					initialData={getInitialFormData()}
-					isLoading={isLoading}
-				/>
-			</div>
+				}
+			>
+				<div>
+					{error && (
+						<NetworkError
+							error={error}
+							onRetry={handleRetry}
+							onDismiss={handleDismissError}
+							showDetails={process.env.NODE_ENV === "development"}
+						/>
+					)}
+					<AssignmentForm
+						onSubmit={handleFormSubmit}
+						onCancel={handleFormCancel}
+						initialData={getInitialFormData()}
+						isLoading={isSubmitting}
+					/>
+				</div>
+			</ErrorBoundary>
 		);
 	}
 
 	return (
-		<div>
-			<div className="flex-between mb-8">
-				<h1 className="text-3xl font-bold text-gray-900">Assignments</h1>
-				<button
-					className="btn btn-primary"
-					onClick={() => setShowForm(true)}
-				>
-					Add Assignment
-				</button>
-			</div>
-
-			{error && (
-				<div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-					<p className="text-red-800">{error}</p>
+		<ErrorBoundary
+			onError={handleErrorBoundaryError}
+			fallback={
+				<div className="p-8 text-center">
+					<h2 className="text-xl font-semibold mb-4">Assignments Error</h2>
+					<p className="text-gray-600 mb-4">
+						There was an error loading your assignments.
+					</p>
 					<button
-						onClick={() => setError(null)}
-						className="mt-2 text-sm text-red-600 hover:text-red-800"
+						onClick={() => window.location.reload()}
+						className="btn btn-primary"
 					>
-						Dismiss
+						Reload Page
 					</button>
 				</div>
-			)}
+			}
+		>
+			<div>
+				<div className="flex-between mb-8">
+					<h1 className="text-3xl font-bold text-gray-900">Assignments</h1>
+					<button
+						className="btn btn-primary"
+						onClick={() => setShowForm(true)}
+						disabled={isLoading}
+					>
+						Add Assignment
+					</button>
+				</div>
 
-			<AssignmentList
-				assignments={assignments}
-				onEdit={handleEdit}
-				onDelete={handleDelete}
-				onStatusChange={handleStatusChange}
-				isLoading={isLoading}
-			/>
-		</div>
+				{error && (
+					<NetworkError
+						error={error}
+						onRetry={handleRetry}
+						onDismiss={handleDismissError}
+						showDetails={process.env.NODE_ENV === "development"}
+					/>
+				)}
+
+				{/* Show skeleton loader while loading */}
+				{isLoading && assignments.length === 0 ? (
+					<div>
+						<LoadingSpinner size="lg" text="Loading assignments..." />
+						<div className="mt-6">
+							<SkeletonLoader type="assignment" count={3} />
+						</div>
+					</div>
+				) : (
+					<AssignmentList
+						assignments={assignments}
+						onEdit={handleEdit}
+						onDelete={handleDelete}
+						onStatusChange={handleStatusChange}
+						isLoading={isLoading}
+					/>
+				)}
+			</div>
+		</ErrorBoundary>
 	);
 };
 
