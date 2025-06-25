@@ -124,3 +124,21 @@ export interface DashboardStats {
 	totalHoursEstimated: number;
 	totalHoursActual: number;
 }
+
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    metadata?: {
+      requestId: number;
+      startTime: number;
+    };
+    _isRetry?: boolean;
+  }
+
+  interface InternalAxiosRequestConfig {
+    metadata?: {
+      requestId: number;
+      startTime: number;
+    };
+    _isRetry?: boolean;
+  }
+}
