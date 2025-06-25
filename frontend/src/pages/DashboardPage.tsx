@@ -3,6 +3,12 @@ import { Link } from "react-router-dom";
 import { Assignment, Note } from "../types";
 import { assignmentsApi } from "../api/assignments";
 import { notesApi } from "../api/notes";
+import { ApiError } from "../api/errors";
+import LoadingSpinner from "../components/common/LoadingSpinner";
+import SkeletonLoader from "../components/common/SkeletonLoader";
+import ErrorBoundary from "../components/common/ErrorBoundary";
+import NetworkError from "../components/common/NetworkError";
+import { useNetworkStatus } from "../hooks/useNetworkStatus";
 import {
 	format,
 	isToday,
@@ -16,7 +22,11 @@ const DashboardPage: React.FC = () => {
 	const [assignments, setAssignments] = useState<Assignment[]>([]);
 	const [notes, setNotes] = useState<Note[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
+	const [error, setError] = useState<ApiError | null>(null);
+	const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+	// Network status monitoring
+	const networkStatus = useNetworkStatus(30000); // Check every 30 seconds
 
 	useEffect(() => {
 		loadDashboardData();
@@ -24,6 +34,8 @@ const DashboardPage: React.FC = () => {
 
 	const loadDashboardData = async () => {
 		setIsLoading(true);
+		setError(null);
+		
 		try {
 			const [assignmentsData, notesData] = await Promise.all([
 				assignmentsApi.getAll(),
@@ -31,12 +43,26 @@ const DashboardPage: React.FC = () => {
 			]);
 			setAssignments(Array.isArray(assignmentsData) ? assignmentsData : []);
 			setNotes(Array.isArray(notesData) ? notesData : []);
+			setLastUpdated(new Date());
 		} catch (error) {
 			console.error("Error loading dashboard data:", error);
-			setError("Failed to load dashboard data");
+			if (error instanceof ApiError) {
+				setError(error);
+			} else {
+				setError(new ApiError("Failed to load dashboard data", 500, error));
+			}
 		} finally {
 			setIsLoading(false);
 		}
+	};
+
+	// Handle retry from error component
+	const handleRetry = () => {
+		loadDashboardData();
+	};
+
+	const handleDismissError = () => {
+		setError(null);
 	};
 
 	// Calculate statistics
@@ -143,169 +169,207 @@ const DashboardPage: React.FC = () => {
 		}
 	};
 
-	if (isLoading) {
+	const getConnectionStatus = () => {
+		if (!networkStatus.isOnline) {
+			return { color: "bg-red-500", text: "Offline", icon: "🔴" };
+		} else if (!networkStatus.isApiHealthy) {
+			return { color: "bg-yellow-500", text: "API Unavailable", icon: "🟡" };
+		} else {
+			return { color: "bg-green-500", text: "Connected", icon: "🟢" };
+		}
+	};
+
+	// Show loading state with skeleton
+	if (isLoading && assignments.length === 0) {
 		return (
-			<div className="loading-container">
-				<div className="loading-spinner"></div>
-				<span className="loading-text">Loading dashboard...</span>
-			</div>
+			<ErrorBoundary>
+				<div className="dashboard">
+					<div className="dashboard-header">
+						<LoadingSpinner size="lg" text="Loading your dashboard..." />
+					</div>
+					
+					<div className="stats-section">
+						<h2 className="section-title">Overview</h2>
+						<SkeletonLoader type="card" count={6} />
+					</div>
+					
+					<div className="dashboard-grid">
+						<SkeletonLoader type="assignment" count={3} />
+					</div>
+				</div>
+			</ErrorBoundary>
 		);
 	}
 
+	const connectionStatus = getConnectionStatus();
+
 	return (
-		<div className="dashboard">
-			<div className="dashboard-header">
-				<h1 className="dashboard-title">Dashboard</h1>
-				<p className="dashboard-subtitle">
-					Welcome back! Here's your academic overview
-				</p>
-			</div>
-
-			{error && (
-				<div className="error-banner">
-					<p className="error-text">{error}</p>
-					<button onClick={() => setError(null)} className="error-close">
-						✕
-					</button>
-				</div>
-			)}
-
-			{/* Stats Overview */}
-			<div className="stats-section">
-				<h2 className="section-title">Overview</h2>
-				<div className="stats-grid">
-					<div className="stat-card">
-						<div className="stat-icon">📚</div>
-						<div className="stat-content">
-							<div className="stat-number">{stats.total}</div>
-							<div className="stat-label">Total Assignments</div>
+		<ErrorBoundary>
+			<div className="dashboard">
+				<div className="dashboard-header">
+					<h1 className="dashboard-title">Dashboard</h1>
+					<p className="dashboard-subtitle">
+						Welcome back! Here's your academic overview
+					</p>
+					
+					{/* Network Status Indicator */}
+					<div className="flex items-center gap-4 mt-4 text-sm">
+						<div className="flex items-center gap-2">
+							<div className={`w-2 h-2 rounded-full ${connectionStatus.color}`}></div>
+							<span className="text-gray-600">{connectionStatus.text}</span>
+							{networkStatus.isChecking && (
+								<LoadingSpinner size="sm" />
+							)}
 						</div>
-					</div>
-					<div className="stat-card">
-						<div className="stat-icon">✅</div>
-						<div className="stat-content">
-							<div className="stat-number text-green-600">
-								{stats.completed}
+						
+						{lastUpdated && (
+							<div className="flex items-center gap-2 text-gray-500">
+								<span>•</span>
+								<span>Last updated: {format(lastUpdated, "HH:mm:ss")}</span>
 							</div>
-							<div className="stat-label">Completed</div>
-						</div>
-					</div>
-					<div className="stat-card">
-						<div className="stat-icon">⚡</div>
-						<div className="stat-content">
-							<div className="stat-number text-blue-600">
-								{stats.inProgress}
-							</div>
-							<div className="stat-label">In Progress</div>
-						</div>
-					</div>
-					<div className="stat-card">
-						<div className="stat-icon">⚠️</div>
-						<div className="stat-content">
-							<div className="stat-number text-red-600">
-								{stats.overdue}
-							</div>
-							<div className="stat-label">Overdue</div>
-						</div>
-					</div>
-					<div className="stat-card">
-						<div className="stat-icon">📝</div>
-						<div className="stat-content">
-							<div className="stat-number text-purple-600">
-								{stats.totalNotes}
-							</div>
-							<div className="stat-label">Notes</div>
-						</div>
-					</div>
-					<div className="stat-card">
-						<div className="stat-icon">⏱️</div>
-						<div className="stat-content">
-							<div className="stat-number text-orange-600">
-								{stats.totalEstimatedHours}h
-							</div>
-							<div className="stat-label">Est. Hours</div>
-						</div>
+						)}
+						
+						<button
+							onClick={handleRetry}
+							className="btn btn-secondary btn-sm"
+							disabled={isLoading || networkStatus.isChecking}
+						>
+							Refresh
+						</button>
 					</div>
 				</div>
 
-				{/* Progress Bar */}
-				<div className="progress-section">
-					<div className="progress-header">
-						<h3 className="progress-title">Overall Progress</h3>
-						<span className="progress-percentage">
-							{completionRate.toFixed(1)}%
-						</span>
-					</div>
-					<div className="progress-bar">
-						<div
-							className="progress-fill"
-							style={{ width: `${completionRate}%` }}
-						></div>
-					</div>
-					<div className="progress-details">
-						<span className="progress-detail">
-							{stats.completed} of {stats.total} assignments completed
-						</span>
-					</div>
-				</div>
-			</div>
+				{/* Network Error Display */}
+				{error && (
+					<NetworkError
+						error={error}
+						onRetry={handleRetry}
+						onDismiss={handleDismissError}
+						showDetails={process.env.NODE_ENV === 'development'}
+					/>
+				)}
 
-			{/* Main Content Grid */}
-			<div className="dashboard-grid">
-				{/* Overdue Assignments (High Priority) */}
-				{overdueAssignments.length > 0 && (
-					<div className="dashboard-card urgent">
-						<div className="card-header">
-							<h3 className="card-title">⚠️ Overdue Assignments</h3>
-							<Link to="/assignments" className="card-link">
-								View All
-							</Link>
-						</div>
-						<div className="assignments-list">
-							{overdueAssignments.map((assignment) => (
-								<div
-									key={assignment.id}
-									className="assignment-item overdue"
-								>
-									<div className="assignment-content">
-										<div className="assignment-title">
-											{assignment.title}
-										</div>
-										<div className="assignment-subject">
-											{assignment.subject}
-										</div>
-									</div>
-									<div className="assignment-meta">
-										<div className="assignment-priority">
-											{getPriorityIcon(assignment.priority)}
-										</div>
-										<div className="assignment-due overdue-text">
-											{format(new Date(assignment.dueDate), "MMM d")}
-										</div>
-									</div>
-								</div>
-							))}
+				{/* Offline Warning */}
+				{!networkStatus.isOnline && (
+					<div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+						<div className="flex items-center">
+							<span className="text-yellow-600 mr-2">⚠️</span>
+							<p className="text-yellow-800">
+								You're currently offline. Data may be outdated.
+							</p>
 						</div>
 					</div>
 				)}
 
-				{/* Upcoming Assignments */}
-				<div className="dashboard-card">
-					<div className="card-header">
-						<h3 className="card-title">📅 Upcoming Assignments</h3>
-						<Link to="/assignments" className="card-link">
-							View All
-						</Link>
+				{/* API Health Warning */}
+				{networkStatus.isOnline && !networkStatus.isApiHealthy && (
+					<div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+						<div className="flex items-center">
+							<span className="text-orange-600 mr-2">🔧</span>
+							<p className="text-orange-800">
+								API is temporarily unavailable. Some features may not work properly.
+							</p>
+						</div>
 					</div>
-					{upcomingAssignments.length > 0 ? (
-						<div className="assignments-list">
-							{upcomingAssignments.map((assignment) => {
-								const warning = getDueDateWarning(
-									new Date(assignment.dueDate),
-									assignment.status
-								);
-								return (
-									<div key={assignment.id} className="assignment-item">
+				)}
+
+				{/* Stats Overview */}
+				<div className="stats-section">
+					<h2 className="section-title">Overview</h2>
+					<div className="stats-grid">
+						<div className="stat-card">
+							<div className="stat-icon">📚</div>
+							<div className="stat-content">
+								<div className="stat-number">{stats.total}</div>
+								<div className="stat-label">Total Assignments</div>
+							</div>
+						</div>
+						<div className="stat-card">
+							<div className="stat-icon">✅</div>
+							<div className="stat-content">
+								<div className="stat-number text-green-600">
+									{stats.completed}
+								</div>
+								<div className="stat-label">Completed</div>
+							</div>
+						</div>
+						<div className="stat-card">
+							<div className="stat-icon">⚡</div>
+							<div className="stat-content">
+								<div className="stat-number text-blue-600">
+									{stats.inProgress}
+								</div>
+								<div className="stat-label">In Progress</div>
+							</div>
+						</div>
+						<div className="stat-card">
+							<div className="stat-icon">⚠️</div>
+							<div className="stat-content">
+								<div className="stat-number text-red-600">
+									{stats.overdue}
+								</div>
+								<div className="stat-label">Overdue</div>
+							</div>
+						</div>
+						<div className="stat-card">
+							<div className="stat-icon">📝</div>
+							<div className="stat-content">
+								<div className="stat-number text-purple-600">
+									{stats.totalNotes}
+								</div>
+								<div className="stat-label">Notes</div>
+							</div>
+						</div>
+						<div className="stat-card">
+							<div className="stat-icon">⏱️</div>
+							<div className="stat-content">
+								<div className="stat-number text-orange-600">
+									{stats.totalEstimatedHours}h
+								</div>
+								<div className="stat-label">Est. Hours</div>
+							</div>
+						</div>
+					</div>
+
+					{/* Progress Bar */}
+					<div className="progress-section">
+						<div className="progress-header">
+							<h3 className="progress-title">Overall Progress</h3>
+							<span className="progress-percentage">
+								{completionRate.toFixed(1)}%
+							</span>
+						</div>
+						<div className="progress-bar">
+							<div
+								className="progress-fill"
+								style={{ width: `${completionRate}%` }}
+							></div>
+						</div>
+						<div className="progress-details">
+							<span className="progress-detail">
+								{stats.completed} of {stats.total} assignments completed
+							</span>
+						</div>
+					</div>
+				</div>
+
+				{/* Main Content Grid */}
+				<div className="dashboard-grid">
+					{/* Overdue Assignments (High Priority) */}
+					{overdueAssignments.length > 0 && (
+						<div className="dashboard-card urgent">
+							<div className="card-header">
+								<h3 className="card-title">⚠️ Overdue Assignments</h3>
+								<Link to="/assignments" className="card-link">
+									View All
+								</Link>
+							</div>
+							<div className="assignments-list">
+								{overdueAssignments.map((assignment) => (
+									<div
+										key={assignment.id}
+										className="assignment-item overdue"
+									>
 										<div className="assignment-content">
 											<div className="assignment-title">
 												{assignment.title}
@@ -313,91 +377,131 @@ const DashboardPage: React.FC = () => {
 											<div className="assignment-subject">
 												{assignment.subject}
 											</div>
-											{warning && (
-												<div
-													className={`due-warning ${warning.class}`}
-												>
-													{warning.message}
-												</div>
-											)}
 										</div>
 										<div className="assignment-meta">
 											<div className="assignment-priority">
 												{getPriorityIcon(assignment.priority)}
 											</div>
-											<div className="assignment-due">
-												{formatDueDate(
-													new Date(assignment.dueDate)
-												)}
+											<div className="assignment-due overdue-text">
+												{format(new Date(assignment.dueDate), "MMM d")}
 											</div>
 										</div>
 									</div>
-								);
-							})}
-						</div>
-					) : (
-						<div className="empty-message">
-							<div className="empty-icon">🎉</div>
-							<p>No upcoming assignments! You're all caught up.</p>
+								))}
+							</div>
 						</div>
 					)}
-				</div>
 
-				{/* Recent Notes */}
-				<div className="dashboard-card">
-					<div className="card-header">
-						<h3 className="card-title">📝 Recent Notes</h3>
-						<Link to="/notes" className="card-link">
-							View All
-						</Link>
-					</div>
-					{recentNotes.length > 0 ? (
-						<div className="notes-list">
-							{recentNotes.map((note) => (
-								<div key={note.id} className="note-item">
-									<div className="note-content">
-										<div className="note-title">{note.title}</div>
-										<div className="note-subject">{note.subject}</div>
-									</div>
-									<div className="note-date">
-										{format(new Date(note.updatedAt), "MMM d")}
-									</div>
-								</div>
-							))}
-						</div>
-					) : (
-						<div className="empty-message">
-							<div className="empty-icon">📝</div>
-							<p>No notes yet. Create your first note!</p>
-							<Link to="/notes" className="btn btn-primary btn-sm">
-								Add Note
+					{/* Upcoming Assignments */}
+					<div className="dashboard-card">
+						<div className="card-header">
+							<h3 className="card-title">📅 Upcoming Assignments</h3>
+							<Link to="/assignments" className="card-link">
+								View All
 							</Link>
 						</div>
-					)}
-				</div>
-
-				{/* Quick Actions */}
-				<div className="dashboard-card">
-					<div className="card-header">
-						<h3 className="card-title">⚡ Quick Actions</h3>
+						{upcomingAssignments.length > 0 ? (
+							<div className="assignments-list">
+								{upcomingAssignments.map((assignment) => {
+									const warning = getDueDateWarning(
+										new Date(assignment.dueDate),
+										assignment.status
+									);
+									return (
+										<div key={assignment.id} className="assignment-item">
+											<div className="assignment-content">
+												<div className="assignment-title">
+													{assignment.title}
+												</div>
+												<div className="assignment-subject">
+													{assignment.subject}
+												</div>
+												{warning && (
+													<div
+														className={`due-warning ${warning.class}`}
+													>
+														{warning.message}
+													</div>
+												)}
+											</div>
+											<div className="assignment-meta">
+												<div className="assignment-priority">
+													{getPriorityIcon(assignment.priority)}
+												</div>
+												<div className="assignment-due">
+													{formatDueDate(
+														new Date(assignment.dueDate)
+													)}
+												</div>
+											</div>
+										</div>
+									);
+								})}
+							</div>
+						) : (
+							<div className="empty-message">
+								<div className="empty-icon">🎉</div>
+								<p>No upcoming assignments! You're all caught up.</p>
+							</div>
+						)}
 					</div>
-					<div className="quick-actions">
-						<Link to="/assignments" className="quick-action">
-							<div className="action-icon">➕</div>
-							<div className="action-text">New Assignment</div>
-						</Link>
-						<Link to="/notes" className="quick-action">
-							<div className="action-icon">📝</div>
-							<div className="action-text">New Note</div>
-						</Link>
-						<button onClick={loadDashboardData} className="quick-action">
-							<div className="action-icon">🔄</div>
-							<div className="action-text">Refresh</div>
-						</button>
+
+					{/* Recent Notes */}
+					<div className="dashboard-card">
+						<div className="card-header">
+							<h3 className="card-title">📝 Recent Notes</h3>
+							<Link to="/notes" className="card-link">
+								View All
+							</Link>
+						</div>
+						{recentNotes.length > 0 ? (
+							<div className="notes-list">
+								{recentNotes.map((note) => (
+									<div key={note.id} className="note-item">
+										<div className="note-content">
+											<div className="note-title">{note.title}</div>
+											<div className="note-subject">{note.subject}</div>
+										</div>
+										<div className="note-date">
+											{format(new Date(note.updatedAt), "MMM d")}
+										</div>
+									</div>
+								))}
+							</div>
+						) : (
+							<div className="empty-message">
+								<div className="empty-icon">📝</div>
+								<p>No notes yet. Create your first note!</p>
+								<Link to="/notes" className="btn btn-primary btn-sm">
+									Add Note
+								</Link>
+							</div>
+						)}
+					</div>
+
+					{/* Quick Actions */}
+					<div className="dashboard-card">
+						<div className="card-header">
+							<h3 className="card-title">⚡ Quick Actions</h3>
+						</div>
+						<div className="quick-actions">
+							<Link to="/assignments" className="quick-action">
+								<div className="action-icon">➕</div>
+								<div className="action-text">New Assignment</div>
+							</Link>
+							<Link to="/notes" className="quick-action">
+								<div className="action-icon">📝</div>
+								<div className="action-text">New Note</div>
+							</Link>
+							<button onClick={handleRetry} className="quick-action">
+								<div className="action-icon">🔄</div>
+								<div className="action-text">Refresh</div>
+							</button>
+						</div>
 					</div>
 				</div>
 			</div>
-		</div>
+		</ErrorBoundary>
 	);
 };
 
