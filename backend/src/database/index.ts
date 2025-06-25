@@ -10,10 +10,10 @@ const NOTES_FILE = path.join(DB_DIR, "notes.json");
 // Initialize database files
 export const initializeDatabase = async (): Promise<void> => {
 	try {
-		// Create data directory if it doesn't exist
+		
 		await fs.mkdir(DB_DIR, { recursive: true });
 
-		// Initialize assignments file
+		
 		try {
 			await fs.access(ASSIGNMENTS_FILE);
 		} catch {
@@ -21,7 +21,7 @@ export const initializeDatabase = async (): Promise<void> => {
 			console.log("📄 Created assignments.json");
 		}
 
-		// Initialize notes file
+		
 		try {
 			await fs.access(NOTES_FILE);
 		} catch {
@@ -36,7 +36,7 @@ export const initializeDatabase = async (): Promise<void> => {
 	}
 };
 
-// Generic JSON database class
+
 class JsonDatabase<T> {
 	private filePath: string;
 
@@ -44,7 +44,7 @@ class JsonDatabase<T> {
 		this.filePath = filePath;
 	}
 
-	// Read all records
+
 	async readAll(): Promise<T[]> {
 		try {
 			const data = await fs.readFile(this.filePath, "utf8");
@@ -55,7 +55,7 @@ class JsonDatabase<T> {
 		}
 	}
 
-	// Write all records
+	
 	async writeAll(data: T[]): Promise<void> {
 		try {
 			await fs.writeFile(this.filePath, JSON.stringify(data, null, 2));
@@ -65,7 +65,7 @@ class JsonDatabase<T> {
 		}
 	}
 
-	// Find record by ID
+
 	async findById(
 		id: string,
 		idField: keyof T = "id" as keyof T
@@ -74,7 +74,7 @@ class JsonDatabase<T> {
 		return records.find((record) => record[idField] === id) || null;
 	}
 
-	// Find records by criteria
+
 	async findBy(criteria: Partial<T>): Promise<T[]> {
 		const records = await this.readAll();
 		return records.filter((record) => {
@@ -85,7 +85,7 @@ class JsonDatabase<T> {
 		});
 	}
 
-	// Add new record
+	
 	async create(record: T): Promise<T> {
 		const records = await this.readAll();
 		records.push(record);
@@ -93,7 +93,7 @@ class JsonDatabase<T> {
 		return record;
 	}
 
-	// Update record by ID
+
 	async updateById(
 		id: string,
 		updates: Partial<T>,
@@ -111,7 +111,7 @@ class JsonDatabase<T> {
 		return records[index];
 	}
 
-	// Delete record by ID
+
 	async deleteById(
 		id: string,
 		idField: keyof T = "id" as keyof T
@@ -130,20 +130,20 @@ class JsonDatabase<T> {
 		return true;
 	}
 
-	// Get total count
+	
 	async count(): Promise<number> {
 		const records = await this.readAll();
 		return records.length;
 	}
 }
 
-// Database instances
+
 export const assignmentsDB = new JsonDatabase<Assignment>(ASSIGNMENTS_FILE);
 export const notesDB = new JsonDatabase<Note>(NOTES_FILE);
 
-// Database utility functions
+
 export const dbUtils = {
-	// Backup database
+
 	async backup(): Promise<void> {
 		const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
 		const backupDir = path.join(DB_DIR, "backups");
@@ -162,14 +162,14 @@ export const dbUtils = {
 		console.log(`📦 Database backed up at ${timestamp}`);
 	},
 
-	// Clear all data
+	
 	async clearAll(): Promise<void> {
 		await assignmentsDB.writeAll([]);
 		await notesDB.writeAll([]);
 		console.log("🗑️ All database data cleared");
 	},
 
-	// Get database stats
+	
 	async getStats(): Promise<{ assignments: number; notes: number }> {
 		return {
 			assignments: await assignmentsDB.count(),
