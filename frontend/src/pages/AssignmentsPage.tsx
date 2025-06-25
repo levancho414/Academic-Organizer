@@ -68,17 +68,27 @@ const AssignmentsPage: React.FC = () => {
 	};
 
 	const handleDelete = async (id: string) => {
-		if (!window.confirm("Are you sure you want to delete this assignment?")) {
+		// Find the assignment to show in confirmation
+		const assignment = assignments.find((a) => a.id === id);
+		const assignmentTitle = assignment ? assignment.title : "this assignment";
+
+		const confirmMessage = `Are you sure you want to delete "${assignmentTitle}"?\n\nThis action cannot be undone.`;
+
+		if (!window.confirm(confirmMessage)) {
 			return;
 		}
+
 		try {
 			await assignmentsApi.delete(id);
 			setAssignments((prev) =>
 				prev.filter((assignment) => assignment.id !== id)
 			);
+
+			// Show success feedback
+			console.log(`Assignment "${assignmentTitle}" deleted successfully`);
 		} catch (error: any) {
 			console.error("Error deleting assignment:", error);
-			setError("Failed to delete assignment. Please try again.");
+			setError(`Failed to delete "${assignmentTitle}". Please try again.`);
 		}
 	};
 
