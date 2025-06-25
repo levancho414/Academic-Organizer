@@ -21,10 +21,13 @@ const AssignmentsPage: React.FC = () => {
 		setIsLoading(true);
 		try {
 			const data = await assignmentsApi.getAll();
-			setAssignments(data);
+			// Ensure data is always an array
+			setAssignments(Array.isArray(data) ? data : []);
 		} catch (error) {
 			console.error("Error loading assignments:", error);
 			setError("Failed to load assignments. Please try again.");
+			// Set empty array on error
+			setAssignments([]);
 		} finally {
 			setIsLoading(false);
 		}
