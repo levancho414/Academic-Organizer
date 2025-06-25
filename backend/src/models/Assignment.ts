@@ -60,12 +60,11 @@ export class AssignmentModel {
 			);
 			if (newStatus !== assignment.status) {
 				hasStatusChanges = true;
-				const updatedAssignment: Assignment = {
+				return {
 					...assignment,
 					status: newStatus,
 					updatedAt: new Date(),
 				};
-				return updatedAssignment;
 			}
 			return assignment;
 		});
@@ -92,7 +91,7 @@ export class AssignmentModel {
 			assignment.status
 		);
 		if (updatedStatus !== assignment.status) {
-			const updatedAssignment: Assignment = {
+			const updatedAssignment = {
 				...assignment,
 				status: updatedStatus,
 				updatedAt: new Date(),

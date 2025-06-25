@@ -46,9 +46,11 @@ export const validateRequiredFields = (
 	const missingFields: string[] = [];
 
 	requiredFields.forEach((field) => {
+		const value = obj[field];
 		if (
-			!obj[field] ||
-			(typeof obj[field] === "string" && !obj[field].trim())
+			value === undefined ||
+			value === null ||
+			(typeof value === "string" && !value.trim())
 		) {
 			missingFields.push(field);
 		}

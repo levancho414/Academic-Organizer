@@ -122,6 +122,13 @@ export interface GetAssignmentsRequest extends Request {
 		sortOrder?: string;
 	};
 }
+export interface CreateNoteDTO {
+    title: string;
+    content: string;
+    subject: string;
+    tags?: string[];
+    assignmentId?: string;
+}
 
 export interface SearchAssignmentsRequest extends Request {
 	query: {
