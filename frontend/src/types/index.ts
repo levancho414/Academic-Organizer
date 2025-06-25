@@ -96,6 +96,24 @@ export interface SortOptions {
 	direction: "asc" | "desc";
 }
 
+declare module "axios" {
+	interface AxiosRequestConfig {
+		metadata?: {
+			requestId: number;
+			startTime: number;
+		};
+		_isRetry?: boolean;
+	}
+
+	interface InternalAxiosRequestConfig {
+		metadata?: {
+			requestId: number;
+			startTime: number;
+		};
+		_isRetry?: boolean;
+	}
+}
+
 // Dashboard stats type
 export interface DashboardStats {
 	totalAssignments: number;
