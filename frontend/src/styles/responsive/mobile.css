@@ -1,0 +1,170 @@
+/* Mobile Responsive Styles */
+
+@media (max-width: 768px) {
+	/* Navigation */
+	.nav-container {
+		flex-direction: column;
+		height: auto;
+		padding: 1rem;
+	}
+
+	.nav-links {
+		margin-top: 1rem;
+	}
+
+	/* Layout */
+	.card-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.stats-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	/* Dashboard */
+	.dashboard-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.stat-card {
+		flex-direction: column;
+		text-align: center;
+		gap: 0.5rem;
+	}
+
+	.progress-header {
+		flex-direction: column;
+		gap: 0.5rem;
+		text-align: center;
+	}
+
+	.card-header {
+		flex-direction: column;
+		gap: 0.5rem;
+		align-items: flex-start;
+	}
+
+	.assignment-item,
+	.note-item {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.5rem;
+	}
+
+	.assignment-meta {
+		align-self: flex-end;
+	}
+
+	.dashboard-header .flex {
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.dashboard-header .flex > div {
+		width: 100%;
+		text-align: center;
+	}
+
+	/* Assignments */
+	.assignment-controls {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.results-count {
+		margin-left: 0;
+		text-align: center;
+		width: 100%;
+	}
+
+	.assignment-footer {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 1rem;
+	}
+
+	.assignment-actions {
+		width: 100%;
+		justify-content: space-between;
+	}
+
+	/* Notes */
+	.notes-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.note-controls {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.control-group {
+		width: 100%;
+		justify-content: space-between;
+	}
+
+	.note-header {
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.note-actions {
+		align-self: flex-end;
+	}
+
+	.note-dates {
+		font-size: 0.6875rem;
+	}
+}
+
+@media (max-width: 640px) {
+	/* Note form mobile adjustments */
+	.note-form .flex {
+		flex-direction: column;
+	}
+
+	.note-form .flex-1 {
+		width: 100%;
+	}
+
+	/* Error components */
+	.error-boundary {
+		padding: 1rem;
+	}
+
+	.network-error {
+		margin: 0 -1rem 1rem -1rem;
+		border-radius: 0;
+		border-left-width: 4px;
+		border-right-width: 0;
+		border-top-width: 0;
+		border-bottom-width: 0;
+	}
+
+	.error-fallback {
+		padding: 1rem;
+	}
+
+	.error-fallback .flex-col {
+		width: 100%;
+	}
+
+	.error-fallback .sm\:flex-row {
+		flex-direction: column;
+	}
+}
+
+@media (max-width: 480px) {
+	/* Dashboard */
+	.stats-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.dashboard-title {
+		font-size: 2rem;
+	}
+
+	.dashboard-subtitle {
+		font-size: 1rem;
+	}
+}

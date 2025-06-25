@@ -1,0 +1,44 @@
+/* Loading Components */
+
+/* Loading Spinner */
+.loading-spinner {
+	border: 2px solid #f3f3f3;
+	border-top: 2px solid #2563eb;
+	border-radius: 50%;
+	width: 2rem;
+	height: 2rem;
+	animation: spin 1s linear infinite;
+	margin: 0 auto;
+}
+
+.loading-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 2rem;
+	gap: 0.5rem;
+}
+
+.loading-text {
+	color: #6b7280;
+}
+
+/* Keyframe Animations */
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes pulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.5;
+	}
+}

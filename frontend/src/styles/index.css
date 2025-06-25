@@ -1,0 +1,26 @@
+/* Main CSS Entry Point - Academic Organizer */
+
+/* Global Styles */
+@import "./globals/reset.css";
+@import "./globals/variables.css";
+@import "./globals/typography.css";
+@import "./globals/utilities.css";
+
+/* Layout */
+@import "./layout/layout.css";
+@import "./layout/navigation.css";
+
+/* Components */
+@import "./components/buttons.css";
+@import "./components/forms.css";
+@import "./components/cards.css";
+@import "./components/loading.css";
+@import "./components/errors.css";
+
+/* Features */
+@import "./features/assignments.css";
+@import "./features/notes.css";
+@import "./features/dashboard.css";
+
+/* Responsive */
+@import "./responsive/mobile.css";
