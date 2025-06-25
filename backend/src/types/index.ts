@@ -1,4 +1,3 @@
-// Express types
 import { Request, Response } from "express";
 
 // Assignment interface
@@ -44,7 +43,7 @@ export interface ApiError {
 	timestamp: Date;
 }
 
-// Request/Response types
+// Request/Response types (simple, compatible versions)
 export interface TypedRequest<T = any> extends Request {
 	body: T;
 }
@@ -82,4 +81,52 @@ export interface CreateNoteDTO {
 	subject: string;
 	tags?: string[];
 	assignmentId?: string;
+}
+
+// Filter and sort types
+export interface AssignmentFilters {
+	status?: Assignment["status"];
+	priority?: Assignment["priority"];
+	subject?: string;
+	tags?: string[];
+	dueDateFrom?: Date;
+	dueDateTo?: Date;
+}
+
+export interface SortOptions {
+	field: "dueDate" | "priority" | "title" | "createdAt" | "updatedAt";
+	direction: "asc" | "desc";
+}
+
+// Dashboard stats type
+export interface DashboardStats {
+	totalAssignments: number;
+	completedAssignments: number;
+	inProgressAssignments: number;
+	overdueAssignments: number;
+	totalNotes: number;
+	totalHoursEstimated: number;
+	totalHoursActual: number;
+}
+export interface GetAssignmentsRequest extends Request {
+	query: {
+		page?: string;
+		limit?: string;
+		status?: Assignment["status"];
+		priority?: Assignment["priority"];
+		subject?: string;
+		tags?: string;
+		startDate?: string;
+		endDate?: string;
+		sortBy?: string;
+		sortOrder?: string;
+	};
+}
+
+export interface SearchAssignmentsRequest extends Request {
+	query: {
+		q: string;
+		page?: string;
+		limit?: string;
+	};
 }
