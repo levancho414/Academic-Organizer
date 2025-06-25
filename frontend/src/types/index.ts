@@ -118,27 +118,8 @@ declare module "axios" {
 export interface DashboardStats {
 	totalAssignments: number;
 	completedAssignments: number;
-	inProgressAssignments: number;
 	overdueAssignments: number;
 	totalNotes: number;
 	totalHoursEstimated: number;
 	totalHoursActual: number;
-}
-
-declare module 'axios' {
-  interface AxiosRequestConfig {
-    metadata?: {
-      requestId: number;
-      startTime: number;
-    };
-    _isRetry?: boolean;
-  }
-
-  interface InternalAxiosRequestConfig {
-    metadata?: {
-      requestId: number;
-      startTime: number;
-    };
-    _isRetry?: boolean;
-  }
 }

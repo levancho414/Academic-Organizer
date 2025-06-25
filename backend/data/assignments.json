@@ -11,5 +11,18 @@
     "tags": [],
     "createdAt": "2025-06-25T20:34:00.468Z",
     "updatedAt": "2025-06-25T20:34:00.468Z"
+  },
+  {
+    "id": "jde1o7kammcckzh9q",
+    "title": "Final Project",
+    "description": "This is dummy description for final project in ML/AI",
+    "subject": "ML/AI",
+    "dueDate": "2025-06-27T08:00:00.000Z",
+    "priority": "high",
+    "status": "completed",
+    "estimatedHours": 12,
+    "tags": [],
+    "createdAt": "2025-06-25T23:23:59.918Z",
+    "updatedAt": "2025-06-25T23:37:51.387Z"
   }
 ]

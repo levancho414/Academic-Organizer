@@ -1,4 +1,3 @@
-/* Navigation */
 .nav {
 	background-color: #2563eb;
 	color: white;
@@ -13,6 +12,7 @@
 	max-width: 1200px;
 	margin: 0 auto;
 	padding: 0 1rem;
+	gap: 1rem;
 }
 
 .nav-brand {
@@ -26,6 +26,8 @@
 	display: flex;
 	gap: 1rem;
 	list-style: none;
+	margin: 0;
+	padding: 0;
 }
 
 .nav-link {
