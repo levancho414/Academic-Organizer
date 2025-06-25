@@ -13,9 +13,9 @@ export const handleValidationErrors = (
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
 		const errorMessages = errors.array().map((error) => ({
-			field: error.type === 'field' ? error.path : 'unknown',
+			field: error.type === "field" ? error.path : "unknown",
 			message: error.msg,
-			value: error.type === 'field' ? error.value : undefined,
+			value: error.type === "field" ? error.value : undefined,
 		}));
 
 		res.status(400).json(
@@ -87,7 +87,10 @@ export const validateCreateAssignment = [
 			if (tags && tags.length > 20) {
 				throw new Error("Cannot have more than 20 tags");
 			}
-			if (tags && tags.some((tag: any) => typeof tag !== "string" || tag.length > 50)) {
+			if (
+				tags &&
+				tags.some((tag: any) => typeof tag !== "string" || tag.length > 50)
+			) {
 				throw new Error("Each tag must be a string with max 50 characters");
 			}
 			return true;
@@ -137,7 +140,9 @@ export const validateUpdateAssignment = [
 	body("status")
 		.optional()
 		.isIn(["not-started", "in-progress", "completed", "overdue"])
-		.withMessage("Status must be not-started, in-progress, completed, or overdue"),
+		.withMessage(
+			"Status must be not-started, in-progress, completed, or overdue"
+		),
 
 	body("estimatedHours")
 		.optional()
@@ -157,7 +162,10 @@ export const validateUpdateAssignment = [
 			if (tags && tags.length > 20) {
 				throw new Error("Cannot have more than 20 tags");
 			}
-			if (tags && tags.some((tag: any) => typeof tag !== "string" || tag.length > 50)) {
+			if (
+				tags &&
+				tags.some((tag: any) => typeof tag !== "string" || tag.length > 50)
+			) {
 				throw new Error("Each tag must be a string with max 50 characters");
 			}
 			return true;
@@ -183,15 +191,15 @@ export const validateAssignmentId = [
  * Status update validation
  */
 export const validateStatusUpdate = [
-	param("id")
-		.notEmpty()
-		.withMessage("Assignment ID is required"),
+	param("id").notEmpty().withMessage("Assignment ID is required"),
 
 	body("status")
 		.notEmpty()
 		.withMessage("Status is required")
 		.isIn(["not-started", "in-progress", "completed", "overdue"])
-		.withMessage("Status must be not-started, in-progress, completed, or overdue"),
+		.withMessage(
+			"Status must be not-started, in-progress, completed, or overdue"
+		),
 
 	handleValidationErrors,
 ];
