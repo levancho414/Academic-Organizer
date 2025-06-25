@@ -750,3 +750,34 @@ body {
 		justify-content: space-between;
 	}
 }
+
+.assignment-form h2 {
+	color: #2563eb;
+	border-bottom: 2px solid #e5e7eb;
+	padding-bottom: 0.5rem;
+	margin-bottom: 1.5rem;
+}
+
+/* Required field indicator */
+.form-label.required::after {
+	content: " *";
+	color: #dc2626;
+}
+
+/* Form input error state */
+.form-input.error,
+.form-textarea.error {
+	border-color: #dc2626;
+	box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+/* Delete button enhanced hover */
+.delete-btn {
+	transition: all 0.2s;
+}
+
+.delete-btn:hover {
+	background-color: #fef2f2;
+	border-color: #f87171;
+	transform: scale(1.1);
+}
