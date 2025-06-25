@@ -1,0 +1,62 @@
+/* Forms */
+.form-group {
+	margin-bottom: 1rem;
+}
+
+.form-label {
+	display: block;
+	margin-bottom: 0.5rem;
+	font-weight: 500;
+	color: #374151;
+}
+
+.form-label.required::after {
+	content: " *";
+	color: #dc2626;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+	width: 100%;
+	padding: 0.5rem 0.75rem;
+	border: 1px solid #d1d5db;
+	border-radius: 0.375rem;
+	font-size: 1rem;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+	outline: none;
+	border-color: #2563eb;
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-input.error,
+.form-textarea.error {
+	border-color: #dc2626;
+	box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.form-textarea {
+	resize: vertical;
+	min-height: 100px;
+}
+
+/* Character Count */
+.character-count {
+	font-size: 0.75rem;
+	color: #6b7280;
+	text-align: right;
+	margin-top: 0.25rem;
+}
+
+/* Tag Input Styles */
+.tag {
+	padding: 0.25rem 0.5rem;
+	font-size: 0.75rem;
+	background-color: #eff6ff;
+	color: #1d4ed8;
+	border-radius: 9999px;
+}

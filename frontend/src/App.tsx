@@ -5,7 +5,7 @@ import HomePage from "./pages/HomePage";
 import AssignmentsPage from "./pages/AssignmentsPage";
 import NotesPage from "./pages/NotesPage";
 import DashboardPage from "./pages/DashboardPage";
-import "./index.css";
+import "./styles/index.css";
 
 function App() {
 	return (

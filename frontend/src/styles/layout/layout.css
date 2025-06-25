@@ -1,0 +1,11 @@
+/* Layout styles */
+.container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 1rem;
+}
+
+.main-content {
+	min-height: calc(100vh - 4rem);
+	padding: 2rem 1rem;
+}
