@@ -135,7 +135,6 @@ const NotesPage: React.FC = () => {
 						notes={notes}
 						assignments={assignments}
 						type="notes"
-						className="hidden sm:block"
 					/>
 					<button
 						className="btn btn-success"
@@ -144,16 +143,6 @@ const NotesPage: React.FC = () => {
 						Add Note
 					</button>
 				</div>
-			</div>
-
-			{/* Mobile Export Button */}
-			<div className="sm:hidden mb-4">
-				<ExportDropdown
-					notes={notes}
-					assignments={assignments}
-					type="notes"
-					className="w-full"
-				/>
 			</div>
 
 			{error && (
