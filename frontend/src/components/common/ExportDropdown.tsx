@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Assignment, Note } from "../../types";
 import { ExportUtils } from "../../utils/exportUtils";
 
-interface ExportButtonProps {
+interface ExportDropdownProps {
 	assignments?: Assignment[];
 	notes?: Note[];
 	type: "assignments" | "notes";
@@ -10,7 +10,7 @@ interface ExportButtonProps {
 	className?: string;
 }
 
-const ExportButton: React.FC<ExportButtonProps> = ({
+const ExportDropdown: React.FC<ExportDropdownProps> = ({
 	assignments = [],
 	notes = [],
 	type,
@@ -80,14 +80,10 @@ const ExportButton: React.FC<ExportButtonProps> = ({
 				}
 			}
 
-			// Show file size info
 			const fileSize = ExportUtils.getFileSizeString(content);
-			console.log(`Exporting ${filename} (${fileSize})`);
-
 			ExportUtils.downloadFile(content, filename, mimeType);
 
-			// Show success message (you can replace with toast notification)
-			alert(`Successfully exported ${type} to ${filename} (${fileSize})`);
+			console.log(`Successfully exported ${filename} (${fileSize})`);
 		} catch (error) {
 			console.error("Export failed:", error);
 			alert(
@@ -109,66 +105,89 @@ const ExportButton: React.FC<ExportButtonProps> = ({
 			return [
 				{
 					key: "csv",
+					icon: "📊",
 					label: "CSV Format",
 					description: "Spreadsheet compatible",
 				},
-				{ key: "json", label: "JSON Format", description: "Raw data" },
+				{
+					key: "json",
+					icon: "📋",
+					label: "JSON Format",
+					description: "Complete data",
+				},
 				{
 					key: "json-stats",
-					label: "JSON with Statistics",
-					description: "Includes analytics",
+					icon: "📈",
+					label: "JSON + Stats",
+					description: "With analytics",
 				},
 			];
 		} else {
 			return [
 				{
 					key: "json",
+					icon: "📝",
 					label: "JSON Format",
-					description: "Raw notes data",
+					description: "Complete notes",
 				},
 				{
 					key: "json-stats",
-					label: "JSON with Metadata",
-					description: "Includes linked assignments",
+					icon: "🔗",
+					label: "JSON + Metadata",
+					description: "With linked assignments",
 				},
 			];
 		}
 	};
 
 	if (getItemCount() === 0) {
-		return null; // Don't show export button if no data
+		return (
+			<button
+				disabled
+				className="btn btn-secondary opacity-50 cursor-not-allowed"
+			>
+				📤 Export
+			</button>
+		);
 	}
 
 	return (
-		<div className={`export-button-container ${className}`}>
-			<div className="relative">
-				<button
-					onClick={() => setShowDropdown(!showDropdown)}
-					disabled={disabled || isExporting}
-					className="btn btn-secondary export-btn"
-					title={`Export ${type}`}
-				>
-					{isExporting ? (
-						<>
-							<div className="loading-spinner-small"></div>
-							Exporting...
-						</>
-					) : (
-						<>📥 Export ({getItemCount()})</>
-					)}
-				</button>
+		<div className={`export-dropdown-container ${className}`}>
+			<button
+				onClick={() => setShowDropdown(!showDropdown)}
+				disabled={disabled || isExporting}
+				className="btn btn-secondary"
+			>
+				{isExporting ? (
+					<>
+						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+						Exporting...
+					</>
+				) : (
+					<>
+						📤 Export ({getItemCount()})
+						<span
+							className={`ml-2 transition-transform ${
+								showDropdown ? "rotate-180" : ""
+							}`}
+						>
+							▼
+						</span>
+					</>
+				)}
+			</button>
 
-				{showDropdown && !isExporting && (
+			{showDropdown && !isExporting && (
+				<>
 					<div className="export-dropdown">
-						<div className="export-dropdown-header">
-							<h4>Export {type}</h4>
-							<button
-								onClick={() => setShowDropdown(false)}
-								className="dropdown-close"
-							>
-								×
-							</button>
+						<div className="export-header">
+							<h3>
+								Export{" "}
+								{type === "assignments" ? "Assignments" : "Notes"}
+							</h3>
+							<p>Choose your format</p>
 						</div>
+
 						<div className="export-options">
 							{getExportOptions().map((option) => (
 								<button
@@ -176,31 +195,26 @@ const ExportButton: React.FC<ExportButtonProps> = ({
 									onClick={() => handleExport(option.key as any)}
 									className="export-option"
 								>
-									<div className="export-option-label">
-										{option.label}
-									</div>
-									<div className="export-option-description">
-										{option.description}
+									<span className="export-icon">{option.icon}</span>
+									<div className="export-content">
+										<div className="export-title">{option.label}</div>
+										<div className="export-desc">
+											{option.description}
+										</div>
 									</div>
 								</button>
 							))}
 						</div>
-						<div className="export-dropdown-footer">
-							<small>Files will download to your device</small>
-						</div>
 					</div>
-				)}
-			</div>
 
-			{/* Backdrop */}
-			{showDropdown && (
-				<div
-					className="export-backdrop"
-					onClick={() => setShowDropdown(false)}
-				></div>
+					<div
+						className="export-backdrop"
+						onClick={() => setShowDropdown(false)}
+					></div>
+				</>
 			)}
 		</div>
 	);
 };
 
-export default ExportButton;
+export default ExportDropdown;

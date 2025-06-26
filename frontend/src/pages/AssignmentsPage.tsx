@@ -260,7 +260,6 @@ const AssignmentsPage: React.FC = () => {
 						<ExportDropdown
 							assignments={assignments}
 							type="assignments"
-							className="hidden sm:block"
 						/>
 						<button
 							className="btn btn-primary"
@@ -270,15 +269,6 @@ const AssignmentsPage: React.FC = () => {
 							Add Assignment
 						</button>
 					</div>
-				</div>
-
-				{/* Mobile Export Button */}
-				<div className="sm:hidden mb-4">
-					<ExportDropdown
-						assignments={assignments}
-						type="assignments"
-						className="w-full"
-					/>
 				</div>
 
 				{error && (
