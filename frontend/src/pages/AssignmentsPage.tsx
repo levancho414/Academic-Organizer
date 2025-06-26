@@ -5,6 +5,7 @@ import LoadingSpinner from "../components/common/LoadingSpinner";
 import SkeletonLoader from "../components/common/SkeletonLoader";
 import ErrorBoundary from "../components/common/ErrorBoundary";
 import NetworkError from "../components/common/NetworkError";
+import ExportDropdown from "../components/common/ExportDropdown";
 import { Assignment, AssignmentFormData } from "../types";
 import { assignmentsApi } from "../api/assignments";
 import { ApiError } from "../api/errors";
@@ -255,13 +256,29 @@ const AssignmentsPage: React.FC = () => {
 			<div>
 				<div className="flex-between mb-8">
 					<h1 className="text-3xl font-bold text-gray-900">Assignments</h1>
-					<button
-						className="btn btn-primary"
-						onClick={() => setShowForm(true)}
-						disabled={isLoading}
-					>
-						Add Assignment
-					</button>
+					<div className="flex gap-3 items-center">
+						<ExportDropdown
+							assignments={assignments}
+							type="assignments"
+							className="hidden sm:block"
+						/>
+						<button
+							className="btn btn-primary"
+							onClick={() => setShowForm(true)}
+							disabled={isLoading}
+						>
+							Add Assignment
+						</button>
+					</div>
+				</div>
+
+				{/* Mobile Export Button */}
+				<div className="sm:hidden mb-4">
+					<ExportDropdown
+						assignments={assignments}
+						type="assignments"
+						className="w-full"
+					/>
 				</div>
 
 				{error && (

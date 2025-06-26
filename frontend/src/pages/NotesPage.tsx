@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import NoteForm from "../components/NoteForm";
 import NoteList from "../components/NoteList";
+import ExportDropdown from "../components/common/ExportDropdown";
 import { Note, NoteFormData, Assignment } from "../types";
 import { notesApi } from "../api/notes";
 import { assignmentsApi } from "../api/assignments";
@@ -129,12 +130,30 @@ const NotesPage: React.FC = () => {
 		<div>
 			<div className="flex-between mb-8">
 				<h1 className="text-3xl font-bold text-gray-900">Notes</h1>
-				<button
-					className="btn btn-success"
-					onClick={() => setShowForm(true)}
-				>
-					Add Note
-				</button>
+				<div className="flex gap-3 items-center">
+					<ExportDropdown
+						notes={notes}
+						assignments={assignments}
+						type="notes"
+						className="hidden sm:block"
+					/>
+					<button
+						className="btn btn-success"
+						onClick={() => setShowForm(true)}
+					>
+						Add Note
+					</button>
+				</div>
+			</div>
+
+			{/* Mobile Export Button */}
+			<div className="sm:hidden mb-4">
+				<ExportDropdown
+					notes={notes}
+					assignments={assignments}
+					type="notes"
+					className="w-full"
+				/>
 			</div>
 
 			{error && (
