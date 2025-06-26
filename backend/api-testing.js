@@ -51,11 +51,7 @@ async function testSystemStats() {
   return await apiRequest('GET', '/stats');
 }
 
-// =============================================================================
-// ASSIGNMENT ENDPOINTS
-// =============================================================================
 
-// Create Assignment
 async function testCreateAssignment() {
   const assignmentData = {
     title: "Complete API Documentation",
@@ -132,9 +128,6 @@ async function testDeleteAssignment(assignmentId) {
   return await apiRequest('DELETE', `/assignments/${assignmentId}`);
 }
 
-// =============================================================================
-// NOTE ENDPOINTS
-// =============================================================================
 
 // Create Note
 async function testCreateNote(assignmentId = null) {
@@ -198,9 +191,6 @@ async function testDeleteNote(noteId) {
   return await apiRequest('DELETE', `/notes/${noteId}`);
 }
 
-// =============================================================================
-// COMPREHENSIVE TEST SUITE
-// =============================================================================
 
 async function runComprehensiveTests() {
   console.log('🧪 Starting Comprehensive API Tests...\n');
